@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recetario — Specialty Coffee</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e0c;
+    --bg-card: #1a1816;
+    --bg-card-alt: #211f1b;
+    --text: #e8e0d4;
+    --text-muted: #9a9082;
+    --text-dim: #6b6358;
+    --accent-warm: #c8956a;
+    --accent-gold: #d4a843;
+    --accent-berry: #b86b7a;
+    --accent-green: #7a9e6d;
+    --border: #2e2a25;
+    --border-light: #3a352f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .hero {
+    min-height: 45vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, #1a1510 0%, var(--bg) 100%);
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 30% 20%, rgba(200,149,106,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 80%, rgba(184,107,122,0.05) 0%, transparent 50%);
+  }
+
+  .hero-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent-warm);
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    position: relative;
+    max-width: 700px;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent-warm);
+  }
+
+  .hero-sub {
+    margin-top: 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    max-width: 500px;
+    position: relative;
+  }
+
+  .container {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* COFFEE SECTION */
+  .coffee-section {
+    padding: 4rem 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .coffee-header {
+    margin-bottom: 3rem;
+  }
+
+  .coffee-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+  }
+
+  .coffee-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+
+  .coffee-origin {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent-warm);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* INFO GRID */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+
+  .info-cell {
+    background: var(--bg-card);
+    padding: 1rem 1.2rem;
+  }
+
+  .info-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.35rem;
+  }
+
+  .info-value {
+    font-size: 0.9rem;
+    color: var(--text);
+    font-weight: 400;
+  }
+
+  /* DESCRIPTION */
+  .description {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.8;
+    margin-bottom: 2rem;
+    max-width: 680px;
+  }
+
+  .description strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* TASTING NOTES */
+  .tasting-notes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .note-tag {
+    padding: 0.35rem 0.85rem;
+    border: 1px solid var(--border-light);
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+  }
+
+  .note-tag.primary {
+    border-color: var(--accent-warm);
+    color: var(--accent-warm);
+  }
+
+  /* RECIPE CARD */
+  .recipe-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+
+  .recipe-header {
+    padding: 1.5rem 1.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .recipe-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .recipe-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+
+  .badge-recomendada {
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+  }
+
+  .badge-alternativa {
+    border-color: var(--text-dim);
+    color: var(--text-dim);
+  }
+
+  .badge-versatil {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+  }
+
+  .recipe-desc {
+    padding: 1rem 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.7;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* PARAMS ROW */
+  .params-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .param {
+    background: var(--bg-card-alt);
+    padding: 0.9rem 1.2rem;
+  }
+
+  .param-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.25rem;
+  }
+
+  .param-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent-warm);
+    font-weight: 500;
+  }
+
+  /* TIMING TABLE */
+  .timing-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .timing-table thead th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 0.8rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+    background: var(--bg-card-alt);
+  }
+
+  .timing-table tbody td {
+    padding: 0.7rem 1rem;
+    font-size: 0.82rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .timing-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .timing-table tbody tr:hover {
+    background: rgba(200,149,106,0.03);
+  }
+
+  .time-cell {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    font-size: 0.8rem;
+  }
+
+  .water-cell {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-warm);
+    font-size: 0.8rem;
+  }
+
+  .switch-open {
+    color: var(--accent-green);
+    font-weight: 500;
+  }
+
+  .switch-closed {
+    color: var(--accent-berry);
+    font-weight: 500;
+  }
+
+  .temp-cell {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+  }
+
+  .action-cell {
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* TIPS */
+  .tips-section {
+    padding: 3rem 0 4rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .tips-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+  }
+
+  .tip-block {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .tip-heading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent-warm);
+    margin-bottom: 0.5rem;
+  }
+
+  .tip-text {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .tip-text strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* FOOTER */
+  .footer {
+    padding: 3rem 0;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  /* NAV PILLS */
+  .nav-pills {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+    padding: 2rem 0 0;
+  }
+
+  .nav-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-light);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    background: transparent;
+  }
+
+  .nav-pill:hover {
+    border-color: var(--accent-warm);
+    color: var(--accent-warm);
+  }
+
+  /* SEPARATOR */
+  .section-sep {
+    width: 40px;
+    height: 1px;
+    background: var(--accent-warm);
+    margin: 2rem 0;
+    opacity: 0.5;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .timing-table { font-size: 0.75rem; }
+    .timing-table thead th, .timing-table tbody td { padding: 0.6rem 0.6rem; }
+    .recipe-header { padding: 1.2rem; }
+    .recipe-desc { padding: 0.8rem 1.2rem; }
+    .params-row { grid-template-columns: repeat(2, 1fr); }
+    .info-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Scrollable table wrapper */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Hario Switch 02 · KinGrinder K6</div>
+  <h1>Recetario de <em>Specialty Coffee</em></h1>
+  <p class="hero-sub">Guía de preparación para dos cafés excepcionales de Ineffable Coffee. Recetas optimizadas para Hario Switch 02 y V60.</p>
+</div>
+
+<div class="container">
+
+  <!-- NAV -->
+  <div class="nav-pills">
+    <a href="#sidra" class="nav-pill">01 — Néstor Lasso Sidra</a>
+    <a href="#munyinya" class="nav-pill">02 — Munyinya Long Miles</a>
+    <a href="#tips" class="nav-pill">Consejos Generales</a>
+  </div>
+
+  <!-- =========================================== -->
+  <!-- CAFÉ 1: NÉSTOR LASSO SIDRA -->
+  <!-- =========================================== -->
+  <section class="coffee-section" id="sidra">
+    <div class="coffee-header">
+      <div class="coffee-number">Café 01</div>
+      <h2 class="coffee-name">Néstor Lasso — Sidra 48h</h2>
+      <div class="coffee-origin">Finca El Diviso · Huila, Colombia · 1700–1850 msnm</div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-cell">
+        <div class="info-label">Variedad</div>
+        <div class="info-value">Sidra (Bourbon × Typica)</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Proceso</div>
+        <div class="info-value">Honey modificado c/ fermentación anaeróbica</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Fermentación</div>
+        <div class="info-value">Oxidación 12h a 25°C → Anaeróbico 48h en barriles sellados → Lavado térmico 50°C → 2ª fermentación anaeróbica 80h a 35°C con levadura T58</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Productor</div>
+        <div class="info-value">Néstor Lasso (22 años, 3ª generación)</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Carácter</div>
+        <div class="info-value">Intenso, complejo, frutal-fermentado. Alta solubilidad — requiere control de extracción.</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Temp. recomendada</div>
+        <div class="info-value">88°C – 92°C (nunca >93°C)</div>
+      </div>
+    </div>
+
+    <div class="tasting-notes">
+      <span class="note-tag primary">Fresa</span>
+      <span class="note-tag primary">Fruta de la pasión</span>
+      <span class="note-tag">Sandía</span>
+      <span class="note-tag">Melón</span>
+      <span class="note-tag">Grosella roja</span>
+      <span class="note-tag">Sangría</span>
+      <span class="note-tag">Cereza negra</span>
+      <span class="note-tag">Notas vínicas</span>
+    </div>
+
+    <p class="description">
+      Este café es producto de un proceso de fermentación extremadamente complejo y controlado. La variedad Sidra, combinada con las múltiples etapas de fermentación anaeróbica y el uso de levadura cervecera T58, produce un perfil <strong>intensamente frutal y "funky"</strong>. Es un café de <strong>alta solubilidad</strong>, lo que significa que se extrae más rápido de lo habitual. Para evitar sobreextracción (sabores avinagrados, amargos), necesitas: temperatura de agua más baja, molienda ligeramente más gruesa, y/o tiempos de brew más cortos de lo habitual.
+    </p>
+
+    <div class="section-sep"></div>
+
+    <!-- RECETA 1A: Devil de Tetsu -->
+    <div class="recipe-card">
+      <div class="recipe-header">
+        <div>
+          <div class="recipe-title">Devil Recipe — Tetsu Kasuya</div>
+        </div>
+        <span class="recipe-badge badge-recomendada">★ Recomendada</span>
+      </div>
+      <div class="recipe-desc">
+        La receta insignia de Tetsu Kasuya para el Hario Switch. Maximiza la extracción dulce al principio (percolación a temp. alta) y frena la extracción de sabores desagradables al final (inmersión a baja temp.). <strong>Ideal para cafés fermentados</strong> porque la fase de inmersión a 70°C impide extraer los compuestos más agresivos de la fermentación.
+      </div>
+      <div class="params-row">
+        <div class="param">
+          <div class="param-label">Café</div>
+          <div class="param-value">20g</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Agua total</div>
+          <div class="param-value">280g</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Ratio</div>
+          <div class="param-value">1:14</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Molienda K6</div>
+          <div class="param-value">85 – 95 clicks</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Temp. inicio</div>
+          <div class="param-value">90°C</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Temp. inmersión</div>
+          <div class="param-value">70°C</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Tiempo total</div>
+          <div class="param-value">~3:00</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="timing-table">
+          <thead>
+            <tr>
+              <th>Tiempo</th>
+              <th>Agua</th>
+              <th>Temp.</th>
+              <th>Switch</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="time-cell">0:00 → 0:10</td>
+              <td class="water-cell">60g</td>
+              <td class="temp-cell">90°C</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Verter 60g en círculos cubriendo todo el café. El agua percola libremente.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:10 → 0:30</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Esperar. Dejar drenar.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:30 → 0:40</td>
+              <td class="water-cell">+60g (→120g)</td>
+              <td class="temp-cell">90°C</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Segundo vertido en círculos. Percola libremente.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:40 → 1:15</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell"><strong>Añadir agua fría al hervidor</strong> para bajar la temperatura a ~70°C. Dejar drenar el café.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">1:15</td>
+              <td class="water-cell">+160g (→280g)</td>
+              <td class="temp-cell" style="color: var(--accent-berry);">70°C</td>
+              <td class="switch-closed">▼ Cerrado</td>
+              <td class="action-cell"><strong>Cerrar switch</strong> antes de verter. Añadir los 160g restantes a 70°C. Inmersión.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">1:15 → 1:45</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-closed">▼ Cerrado</td>
+              <td class="action-cell">Esperar en inmersión 30 segundos.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">1:45</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell"><strong>Abrir switch.</strong> Drawdown completo ~3:00.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RECETA 1B: Ole Kristian Bøen -->
+    <div class="recipe-card">
+      <div class="recipe-header">
+        <div>
+          <div class="recipe-title">Receta de Ole Kristian Bøen</div>
+        </div>
+        <span class="recipe-badge badge-alternativa">Alternativa</span>
+      </div>
+      <div class="recipe-desc">
+        Receta del campeón de la Norwegian Brewers Cup 2020, diseñada para cafés complejos y fermentados. Bloom en inmersión completa + percolación. Saca dulzor y cuerpo sin exagerar las notas fermentadas.
+      </div>
+      <div class="params-row">
+        <div class="param">
+          <div class="param-label">Café</div>
+          <div class="param-value">16.5g</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Agua total</div>
+          <div class="param-value">240g</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Ratio</div>
+          <div class="param-value">1:14.5</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Molienda K6</div>
+          <div class="param-value">90 – 100 clicks</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Temperatura</div>
+          <div class="param-value">90°C</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Tiempo total</div>
+          <div class="param-value">3:00 – 3:15</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="timing-table">
+          <thead>
+            <tr>
+              <th>Tiempo</th>
+              <th>Agua</th>
+              <th>Temp.</th>
+              <th>Switch</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="time-cell">0:00 → 0:10</td>
+              <td class="water-cell">50g</td>
+              <td class="temp-cell">90°C</td>
+              <td class="switch-closed">▼ Cerrado</td>
+              <td class="action-cell">Bloom en inmersión. Verter 50g en círculos sobre todo el café.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:10 → 0:45</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-closed">▼ Cerrado</td>
+              <td class="action-cell">Esperar ~35s. El café desgasifica sumergido.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:45</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell"><strong>Abrir switch.</strong> Dejar drenar el bloom.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">1:00 → 1:30</td>
+              <td class="water-cell">+190g (→240g)</td>
+              <td class="temp-cell">90°C</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Vertido principal en círculos concéntricos suaves, desde el centro hacia fuera y de vuelta. Percolación libre.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">1:30 → 3:00</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Drawdown completo. Objetivo: terminar entre 3:00 y 3:15.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RECETA 1C: Double Bloom Standout -->
+    <div class="recipe-card">
+      <div class="recipe-header">
+        <div>
+          <div class="recipe-title">Double Bloom — Standout Coffee</div>
+        </div>
+        <span class="recipe-badge badge-alternativa">Alternativa · V60 Puro</span>
+      </div>
+      <div class="recipe-desc">
+        Receta diseñada específicamente para este café Néstor Lasso Sidra por Standout Coffee (tostador que vende el mismo lote). Se usa la Hario Switch con el <strong>switch abierto todo el rato</strong> (modo V60 clásica). Máxima claridad y separación de sabores.
+      </div>
+      <div class="params-row">
+        <div class="param">
+          <div class="param-label">Café</div>
+          <div class="param-value">15g</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Agua total</div>
+          <div class="param-value">250g</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Ratio</div>
+          <div class="param-value">1:16.7</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Molienda K6</div>
+          <div class="param-value">90 – 100 clicks</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Temperatura</div>
+          <div class="param-value">90°C</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Tiempo total</div>
+          <div class="param-value">2:40 – 3:00</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="timing-table">
+          <thead>
+            <tr>
+              <th>Tiempo</th>
+              <th>Agua</th>
+              <th>Temp.</th>
+              <th>Switch</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="time-cell">0:00 → 0:10</td>
+              <td class="water-cell">50g</td>
+              <td class="temp-cell">90°C</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Primer bloom. Verter 50g cubriendo todo el café.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:10 → 0:30</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Esperar. Drenar.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:30 → 0:40</td>
+              <td class="water-cell">+50g (→100g)</td>
+              <td class="temp-cell">90°C</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Segundo bloom. Verter otros 50g en círculos.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:40 → 1:00</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Esperar. Drenar.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">1:00 → 1:10</td>
+              <td class="water-cell">+150g (→250g)</td>
+              <td class="temp-cell">90°C</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Vertido final. Verter los 150g restantes en un vertido continuo y circular.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">1:10 → 2:40–3:00</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Drawdown completo. Objetivo: 2:40 a 3:00.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================== -->
+  <!-- CAFÉ 2: MUNYINYA LONG MILES -->
+  <!-- =========================================== -->
+  <section class="coffee-section" id="munyinya">
+    <div class="coffee-header">
+      <div class="coffee-number">Café 02</div>
+      <h2 class="coffee-name">Munyinya — Long Miles</h2>
+      <div class="coffee-origin">Colina Munyinya · Estación Bukeye · Kayanza, Burundi · 1760 msnm</div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-cell">
+        <div class="info-label">Variedad</div>
+        <div class="info-value">Red Bourbon (landrace)</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Proceso</div>
+        <div class="info-value">Lavado (Washed) — doble fermentación</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Fermentación</div>
+        <div class="info-value">Despulpado → fermentación seca 12h → sumergido en agua 12–24h → lavado, clasificado por densidad → secado en camas africanas 16–20 días</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Proyecto</div>
+        <div class="info-value">Long Miles Coffee Project (Ben & Kristy Carlson, desde 2013)</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Carácter</div>
+        <div class="info-value">Limpio, vibrante, acidez cítrica brillante. Clásico africano lavado — se beneficia de alta temperatura.</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Temp. recomendada</div>
+        <div class="info-value">93°C – 96°C</div>
+      </div>
+    </div>
+
+    <div class="tasting-notes">
+      <span class="note-tag primary">Clementina</span>
+      <span class="note-tag primary">Lima</span>
+      <span class="note-tag">Pera amarilla</span>
+      <span class="note-tag">Chocolate con leche</span>
+      <span class="note-tag">Grosellas</span>
+      <span class="note-tag">Oolong oxidado</span>
+      <span class="note-tag">Té floral</span>
+    </div>
+
+    <p class="description">
+      Munyinya fue la colina que hizo que Long Miles creyera en el potencial de Burundi para producir microlotes excepcionales. Las más de 700 familias agricultoras de esta colina entregan cerezas seleccionadas a mano a la estación de lavado Bukeye, donde se procesan con <strong>doble fermentación y clasificación por densidad</strong>. El resultado es un café de <strong>acidez brillante, limpia y jugosa</strong>, con una complejidad que brilla cuando se prepara a temperaturas altas que extraen bien los compuestos aromáticos.
+    </p>
+
+    <div class="section-sep"></div>
+
+    <!-- RECETA 2A: Kaldi's Switch -->
+    <div class="recipe-card">
+      <div class="recipe-header">
+        <div>
+          <div class="recipe-title">Switch con Bloom en Inmersión — Kaldi's</div>
+        </div>
+        <span class="recipe-badge badge-recomendada">★ Recomendada</span>
+      </div>
+      <div class="recipe-desc">
+        Aprovecha el bloom en inmersión (cerrado) para potenciar el dulzor percibido, y luego percolación clásica para extraer la acidez cítrica con claridad. La mejor receta para resaltar la complejidad de un lavado africano.
+      </div>
+      <div class="params-row">
+        <div class="param">
+          <div class="param-label">Café</div>
+          <div class="param-value">16g</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Agua total</div>
+          <div class="param-value">256g</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Ratio</div>
+          <div class="param-value">1:16</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Molienda K6</div>
+          <div class="param-value">90 – 100 clicks</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Temperatura</div>
+          <div class="param-value">95°C</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Tiempo total</div>
+          <div class="param-value">2:45 – 3:15</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="timing-table">
+          <thead>
+            <tr>
+              <th>Tiempo</th>
+              <th>Agua</th>
+              <th>Temp.</th>
+              <th>Switch</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="time-cell">Prep</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-closed">▼ Cerrado</td>
+              <td class="action-cell">Con un palillo, hacer un <strong>pequeño cráter</strong> en el centro de la cama de café.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:00 → 0:05</td>
+              <td class="water-cell">48g</td>
+              <td class="temp-cell">95°C</td>
+              <td class="switch-closed">▼ Cerrado</td>
+              <td class="action-cell">Bloom en inmersión. Verter en el centro del cráter, luego en círculos hacia fuera. Ratio 3× el peso del café.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:05 → 0:10</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-closed">▼ Cerrado</td>
+              <td class="action-cell"><strong>Swirl suave</strong>: levantar el Switch y agitar en círculos para repartir el agua.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:10 → 0:40</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-closed">▼ Cerrado</td>
+              <td class="action-cell">Esperar en inmersión. Desgasificación completa.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:40</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell"><strong>Abrir switch.</strong> Drenar el bloom.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:50 → 1:30</td>
+              <td class="water-cell">+208g (→256g)</td>
+              <td class="temp-cell">95°C</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Vertido principal, lento y continuo en círculos concéntricos. Sin tocar las paredes del filtro.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">1:30 → ~3:00</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Drawdown. Objetivo: entre 2:45 y 3:15.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RECETA 2B: 4:6 Tetsu -->
+    <div class="recipe-card">
+      <div class="recipe-header">
+        <div>
+          <div class="recipe-title">Método 4:6 — Tetsu Kasuya</div>
+        </div>
+        <span class="recipe-badge badge-alternativa">Alternativa · V60 Puro</span>
+      </div>
+      <div class="recipe-desc">
+        El famoso método del World Brewers Cup 2016. Switch <strong>abierto todo el rato</strong> (modo V60). Los dos primeros vertidos (40% del agua) controlan el balance acidez/dulzor. Los tres últimos (60%) controlan la fuerza. Para este café lavado, el primer vertido es menor que el segundo para potenciar la acidez cítrica.
+      </div>
+      <div class="params-row">
+        <div class="param">
+          <div class="param-label">Café</div>
+          <div class="param-value">20g</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Agua total</div>
+          <div class="param-value">300g</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Ratio</div>
+          <div class="param-value">1:15</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Molienda K6</div>
+          <div class="param-value">110 – 120 clicks</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Temperatura</div>
+          <div class="param-value">95°C</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Tiempo total</div>
+          <div class="param-value">3:00 – 3:30</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="timing-table">
+          <thead>
+            <tr>
+              <th>Tiempo</th>
+              <th>Agua</th>
+              <th>Temp.</th>
+              <th>Switch</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="time-cell">0:00 → 0:10</td>
+              <td class="water-cell">50g</td>
+              <td class="temp-cell">95°C</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell"><strong>1er vertido (↑ acidez).</strong> Circular, centro→fuera→centro en 10s. Pausa.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:45 → 0:55</td>
+              <td class="water-cell">+70g (→120g)</td>
+              <td class="temp-cell">95°C</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell"><strong>2º vertido (↑ dulzor).</strong> Mismo movimiento circular. Pausa.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">1:30 → 1:40</td>
+              <td class="water-cell">+60g (→180g)</td>
+              <td class="temp-cell">95°C</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell"><strong>3er vertido.</strong> Controla fuerza. Pausa.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">2:10 → 2:20</td>
+              <td class="water-cell">+60g (→240g)</td>
+              <td class="temp-cell">95°C</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell"><strong>4º vertido.</strong> Pausa.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">2:45 → 2:55</td>
+              <td class="water-cell">+60g (→300g)</td>
+              <td class="temp-cell">95°C</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell"><strong>5º vertido (último).</strong></td>
+            </tr>
+            <tr>
+              <td class="time-cell">2:55 → 3:30</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Drawdown completo. Objetivo: ~3:30.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RECETA 2C: Devil para Munyinya -->
+    <div class="recipe-card">
+      <div class="recipe-header">
+        <div>
+          <div class="recipe-title">Devil Recipe — Tetsu Kasuya</div>
+        </div>
+        <span class="recipe-badge badge-versatil">Versátil · Ambos cafés</span>
+      </div>
+      <div class="recipe-desc">
+        La Devil funciona muy bien también con cafés lavados como el Munyinya. La fase de percolación a alta temperatura extrae la acidez brillante, y la inmersión a baja temperatura aporta dulzor y cuerpo sin arrastrar astringencia. Usa temperatura inicial más alta que para el Sidra.
+      </div>
+      <div class="params-row">
+        <div class="param">
+          <div class="param-label">Café</div>
+          <div class="param-value">20g</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Agua total</div>
+          <div class="param-value">280g</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Ratio</div>
+          <div class="param-value">1:14</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Molienda K6</div>
+          <div class="param-value">85 – 95 clicks</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Temp. inicio</div>
+          <div class="param-value">95°C</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Temp. inmersión</div>
+          <div class="param-value">70°C</div>
+        </div>
+        <div class="param">
+          <div class="param-label">Tiempo total</div>
+          <div class="param-value">~3:00</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="timing-table">
+          <thead>
+            <tr>
+              <th>Tiempo</th>
+              <th>Agua</th>
+              <th>Temp.</th>
+              <th>Switch</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="time-cell">0:00 → 0:10</td>
+              <td class="water-cell">60g</td>
+              <td class="temp-cell">95°C</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Verter 60g en círculos. Percolación libre.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:10 → 0:30</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Esperar. Drenar.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:30 → 0:40</td>
+              <td class="water-cell">+60g (→120g)</td>
+              <td class="temp-cell">95°C</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell">Segundo vertido. Drenar.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">0:40 → 1:15</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell"><strong>Enfriar hervidor a ~70°C.</strong> Drenar café.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">1:15</td>
+              <td class="water-cell">+160g (→280g)</td>
+              <td class="temp-cell" style="color: var(--accent-berry);">70°C</td>
+              <td class="switch-closed">▼ Cerrado</td>
+              <td class="action-cell"><strong>Cerrar switch.</strong> Verter 160g a 70°C. Inmersión.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">1:15 → 1:45</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-closed">▼ Cerrado</td>
+              <td class="action-cell">Esperar 30s en inmersión.</td>
+            </tr>
+            <tr>
+              <td class="time-cell">1:45</td>
+              <td class="water-cell">—</td>
+              <td class="temp-cell">—</td>
+              <td class="switch-open">▲ Abierto</td>
+              <td class="action-cell"><strong>Abrir switch.</strong> Drawdown ~3:00.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================== -->
+  <!-- CONSEJOS GENERALES -->
+  <!-- =========================================== -->
+  <section class="tips-section" id="tips">
+    <h2 class="tips-title">Consejos Generales</h2>
+
+    <div class="tip-block">
+      <div class="tip-heading">Temperatura y cafés fermentados</div>
+      <div class="tip-text">
+        Los cafés con fermentación anaeróbica son más solubles y se extraen más rápido. Para evitar sabores avinagrados o excesivamente "boozy", mantén la temperatura entre <strong>88–92°C</strong>. Para lavados clásicos como el Munyinya, sube a <strong>93–96°C</strong>. Si tu café fermentado sabe a vinagre, antes de culpar al café, baja la temperatura 1-2°C y muele un poco más grueso.
+      </div>
+    </div>
+
+    <div class="tip-block">
+      <div class="tip-heading">Ajuste de molienda — KinGrinder K6</div>
+      <div class="tip-text">
+        Cada click = 16 micras. Para recetas Switch (inmersión + percolación): empieza en <strong>90–100 clicks</strong>. Para el 4:6 de Tetsu (V60 pura, molienda gruesa): <strong>110–120 clicks</strong>. Para la Devil: <strong>85–95 clicks</strong> (ligeramente más fina que V60 estándar). Ajusta de 3 en 5 clicks: si el café está amargo/astringente → más grueso; si está aguado/ácido vacío → más fino.
+      </div>
+    </div>
+
+    <div class="tip-block">
+      <div class="tip-heading">Agua</div>
+      <div class="tip-text">
+        Usa agua con TDS bajo, idealmente por debajo de 150 ppm. El agua del grifo de Valencia es bastante dura. Opciones: <strong>Bezoya</strong> (mineralización muy débil), o mezclar 50/50 agua del grifo con agua destilada. El agua marca una diferencia enorme en cafés de este nivel.
+      </div>
+    </div>
+
+    <div class="tip-block">
+      <div class="tip-heading">Reposo post-tueste</div>
+      <div class="tip-text">
+        Deja reposar el café <strong>mínimo 10 días desde la fecha de tueste</strong>. Para cafés densos (como estos dos), los resultados mejoran incluso pasadas las 3-4 semanas. No tengas prisa por abrirlos el día que llegan.
+      </div>
+    </div>
+
+    <div class="tip-block">
+      <div class="tip-heading">Purge del molinillo</div>
+      <div class="tip-text">
+        Con cafés caros, sacrifica los primeros <strong>2-3 gramos</strong> del paquete para "purgar" el molinillo. Así te aseguras de que no quedan restos de café anterior entre las fresas.
+      </div>
+    </div>
+
+    <div class="tip-block">
+      <div class="tip-heading">Cómo bajar la temperatura para la Devil</div>
+      <div class="tip-text">
+        Método más fácil: hierve el agua, viértela en el hervidor y tendrás ~95°C. Para la fase de inmersión a 70°C, simplemente <strong>añade agua fría del grifo al hervidor</strong> durante la pausa entre el segundo vertido y el tercer vertido. Usa el termómetro del hervidor para confirmar. Si no tienes hervidor con termómetro, añade aproximadamente un 30-40% del volumen en agua fría.
+      </div>
+    </div>
+
+    <div class="tip-block">
+      <div class="tip-heading">Orden sugerido de preparación</div>
+      <div class="tip-text">
+        Si solo tienes una oportunidad con cada café: empieza con la <strong>Devil Recipe</strong> para el Sidra (es la más segura para cafés fermentados) y la <strong>Switch con Bloom en Inmersión</strong> para el Munyinya. Si repites, experimenta con las alternativas.
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">
+    Recetario preparado con datos de Standout Coffee · Hario Europe · Kaldi's Coffee · Timer.Coffee · Perfect Daily Grind · Nordic Brew Lab — Mario, Marzo 2026
+  </div>
+
+</div>
+
+</body>
+</html>
