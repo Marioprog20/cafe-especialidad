@@ -537,14 +537,14 @@
 const SUPABASE_URL = 'https://elpuqglqactoflzoouiy.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVscHVxZ2xxYWN0b2Zsem9vdWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxODgwNDksImV4cCI6MjA5Mjc2NDA0OX0.GYqqZloGNTmnbJKiO17yl5789DYFKEwu1qQOLV3UYbY';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let isAdmin = false;
 let tastingNotes = [];
 
 // ============ AUTH ============
 async function checkAuth() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await db.auth.getSession();
   setAdmin(!!session);
 }
 
@@ -570,7 +570,7 @@ function toggleAuth() {
 async function doLogin() {
   const email = document.getElementById('login-email').value;
   const pw = document.getElementById('login-password').value;
-  const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
+  const { error } = await db.auth.signInWithPassword({ email, password: pw });
   if (error) { alert('Error: ' + error.message); return; }
   setAdmin(true);
   closeModal('login-modal');
@@ -578,7 +578,7 @@ async function doLogin() {
 }
 
 async function doLogout() {
-  await supabase.auth.signOut();
+  await db.auth.signOut();
   setAdmin(false);
 }
 
@@ -586,11 +586,11 @@ function closeModal(id) { document.getElementById(id).classList.remove('active')
 
 // ============ DATA ============
 async function loadData() {
-  const { data: coffees, error: ce } = await supabase
+  const { data: coffees, error: ce } = await db
     .from('coffees').select('*').order('display_order');
   if (ce) { console.error(ce); return; }
 
-  const { data: recipes, error: re } = await supabase
+  const { data: recipes, error: re } = await db
     .from('recipes').select('*').order('display_order');
   if (re) { console.error(re); return; }
 
@@ -728,10 +728,10 @@ async function saveCoffee() {
   const btn = document.getElementById('cf-submit');
   btn.disabled = true; btn.textContent = 'Guardando...';
 
-  const { data: maxOrder } = await supabase.from('coffees').select('display_order').order('display_order', { ascending: false }).limit(1);
+  const { data: maxOrder } = await db.from('coffees').select('display_order').order('display_order', { ascending: false }).limit(1);
   const nextOrder = (maxOrder && maxOrder.length ? maxOrder[0].display_order : 0) + 1;
 
-  const { error } = await supabase.from('coffees').insert({
+  const { error } = await db.from('coffees').insert({
     display_order: nextOrder,
     name: document.getElementById('cf-name').value,
     origin: document.getElementById('cf-origin').value,
@@ -790,7 +790,7 @@ async function saveRecipe() {
   btn.disabled = true; btn.textContent = 'Guardando...';
 
   const coffeeId = document.getElementById('rc-coffee-id').value;
-  const { data: maxOrder } = await supabase.from('recipes').select('display_order').eq('coffee_id', coffeeId).order('display_order', { ascending: false }).limit(1);
+  const { data: maxOrder } = await db.from('recipes').select('display_order').eq('coffee_id', coffeeId).order('display_order', { ascending: false }).limit(1);
   const nextOrder = (maxOrder && maxOrder.length ? maxOrder[0].display_order : 0) + 1;
 
   const stepRows = document.querySelectorAll('#rc-steps-container .step-row');
@@ -803,7 +803,7 @@ async function saveRecipe() {
     action: row.querySelector('.step-action').value,
   }));
 
-  const { error } = await supabase.from('recipes').insert({
+  const { error } = await db.from('recipes').insert({
     coffee_id: coffeeId,
     display_order: nextOrder,
     title: document.getElementById('rc-title').value,
@@ -829,14 +829,14 @@ async function saveRecipe() {
 // ============ DELETE ============
 async function deleteCoffee(id, name) {
   if (!confirm(`¿Eliminar "${name}" y todas sus recetas?`)) return;
-  const { error } = await supabase.from('coffees').delete().eq('id', id);
+  const { error } = await db.from('coffees').delete().eq('id', id);
   if (error) { alert('Error: ' + error.message); return; }
   loadData();
 }
 
 async function deleteRecipe(id, title) {
   if (!confirm(`¿Eliminar la receta "${title}"?`)) return;
-  const { error } = await supabase.from('recipes').delete().eq('id', id);
+  const { error } = await db.from('recipes').delete().eq('id', id);
   if (error) { alert('Error: ' + error.message); return; }
   loadData();
 }
