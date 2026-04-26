@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Recetario — Specialty Coffee</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #0f0e0c;
@@ -17,12 +18,11 @@
     --accent-gold: #d4a843;
     --accent-berry: #b86b7a;
     --accent-green: #7a9e6d;
+    --accent-red: #c75050;
     --border: #2e2a25;
     --border-light: #3a352f;
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   body {
     background: var(--bg);
     color: var(--text);
@@ -32,1214 +32,821 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* AUTH BAR */
+  .auth-bar {
+    position: fixed; top: 0; right: 0; left: 0; z-index: 100;
+    display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    background: rgba(15,14,12,0.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+  }
+  .auth-bar span { color: var(--text-dim); letter-spacing: 0.1em; }
+  .auth-btn {
+    background: transparent; border: 1px solid var(--border-light); color: var(--text-muted);
+    padding: 0.3rem 0.7rem; font-family: inherit; font-size: 0.6rem;
+    letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+  }
+  .auth-btn:hover { border-color: var(--accent-warm); color: var(--accent-warm); }
+  .auth-btn.logout { border-color: var(--accent-red); color: var(--accent-red); }
+
+  /* HERO */
   .hero {
-    min-height: 45vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 4rem 2rem;
-    position: relative;
-    overflow: hidden;
+    min-height: 45vh; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; text-align: center;
+    padding: 5rem 2rem 4rem; position: relative; overflow: hidden;
     background: linear-gradient(180deg, #1a1510 0%, var(--bg) 100%);
   }
-
   .hero::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
     background: radial-gradient(ellipse at 30% 20%, rgba(200,149,106,0.08) 0%, transparent 60%),
                 radial-gradient(ellipse at 70% 80%, rgba(184,107,122,0.05) 0%, transparent 50%);
   }
-
   .hero-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--accent-warm);
-    margin-bottom: 1.5rem;
-    position: relative;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--accent-warm); margin-bottom: 1.5rem; position: relative;
   }
-
   .hero h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(2.5rem, 6vw, 4.5rem);
-    font-weight: 400;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
-    position: relative;
-    max-width: 700px;
+    font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 400; letter-spacing: -0.02em; line-height: 1.15;
+    position: relative; max-width: 700px;
   }
-
-  .hero h1 em {
-    font-style: italic;
-    color: var(--accent-warm);
-  }
-
+  .hero h1 em { font-style: italic; color: var(--accent-warm); }
   .hero-sub {
-    margin-top: 1.5rem;
-    color: var(--text-muted);
-    font-size: 0.95rem;
-    max-width: 500px;
-    position: relative;
+    margin-top: 1.5rem; color: var(--text-muted); font-size: 0.95rem;
+    max-width: 500px; position: relative;
   }
 
-  .container {
-    max-width: 820px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
+  .container { max-width: 820px; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* NAV */
+  .nav-pills {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+    margin-bottom: 3rem; padding: 2rem 0 0;
   }
+  .nav-pill {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.1em; padding: 0.5rem 1rem;
+    border: 1px solid var(--border-light); color: var(--text-muted);
+    cursor: pointer; transition: all 0.2s; text-decoration: none; background: transparent;
+  }
+  .nav-pill:hover { border-color: var(--accent-warm); color: var(--accent-warm); }
 
   /* COFFEE SECTION */
-  .coffee-section {
-    padding: 4rem 0;
-    border-top: 1px solid var(--border);
-  }
-
-  .coffee-header {
-    margin-bottom: 3rem;
-  }
-
+  .coffee-section { padding: 4rem 0; border-top: 1px solid var(--border); }
+  .coffee-header { margin-bottom: 3rem; position: relative; }
   .coffee-number {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin-bottom: 0.75rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.3em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.75rem;
   }
-
   .coffee-name {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(1.8rem, 4vw, 2.5rem);
-    font-weight: 600;
-    line-height: 1.2;
-    margin-bottom: 0.5rem;
+    font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 600; line-height: 1.2; margin-bottom: 0.5rem;
   }
-
   .coffee-origin {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--accent-warm);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    color: var(--accent-warm); letter-spacing: 0.15em; text-transform: uppercase;
   }
 
   /* INFO GRID */
   .info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    margin-bottom: 2rem;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2rem;
   }
-
-  .info-cell {
-    background: var(--bg-card);
-    padding: 1rem 1.2rem;
-  }
-
+  .info-cell { background: var(--bg-card); padding: 1rem 1.2rem; }
   .info-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin-bottom: 0.35rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.35rem;
   }
+  .info-value { font-size: 0.9rem; color: var(--text); font-weight: 400; }
 
-  .info-value {
-    font-size: 0.9rem;
-    color: var(--text);
-    font-weight: 400;
-  }
-
-  /* DESCRIPTION */
   .description {
-    color: var(--text-muted);
-    font-size: 0.92rem;
-    line-height: 1.8;
-    margin-bottom: 2rem;
-    max-width: 680px;
+    color: var(--text-muted); font-size: 0.92rem; line-height: 1.8;
+    margin-bottom: 2rem; max-width: 680px;
   }
 
-  .description strong {
-    color: var(--text);
-    font-weight: 500;
-  }
-
-  /* TASTING NOTES */
-  .tasting-notes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 3rem;
-  }
-
+  .tasting-notes { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 3rem; }
   .note-tag {
-    padding: 0.35rem 0.85rem;
-    border: 1px solid var(--border-light);
-    font-size: 0.75rem;
-    font-weight: 400;
-    color: var(--text-muted);
-    letter-spacing: 0.03em;
+    padding: 0.35rem 0.85rem; border: 1px solid var(--border-light);
+    font-size: 0.75rem; font-weight: 400; color: var(--text-muted); letter-spacing: 0.03em;
   }
-
-  .note-tag.primary {
-    border-color: var(--accent-warm);
-    color: var(--accent-warm);
-  }
+  .note-tag.primary { border-color: var(--accent-warm); color: var(--accent-warm); }
+  .section-sep { width: 40px; height: 1px; background: var(--accent-warm); margin: 2rem 0; opacity: 0.5; }
 
   /* RECIPE CARD */
   .recipe-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    margin-bottom: 2rem;
-    overflow: hidden;
+    background: var(--bg-card); border: 1px solid var(--border);
+    margin-bottom: 2rem; overflow: hidden; position: relative;
   }
-
   .recipe-header {
-    padding: 1.5rem 1.5rem 1rem;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 1rem;
+    padding: 1.5rem 1.5rem 1rem; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;
   }
-
-  .recipe-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.3rem;
-    font-weight: 600;
-    line-height: 1.3;
-  }
-
+  .recipe-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 600; line-height: 1.3; }
   .recipe-badge {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    padding: 0.3rem 0.7rem;
-    border: 1px solid;
-    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 0.3rem 0.7rem; border: 1px solid; white-space: nowrap;
   }
-
-  .badge-recomendada {
-    border-color: var(--accent-gold);
-    color: var(--accent-gold);
-  }
-
-  .badge-alternativa {
-    border-color: var(--text-dim);
-    color: var(--text-dim);
-  }
-
-  .badge-versatil {
-    border-color: var(--accent-green);
-    color: var(--accent-green);
-  }
-
+  .badge-recomendada { border-color: var(--accent-gold); color: var(--accent-gold); }
+  .badge-alternativa { border-color: var(--text-dim); color: var(--text-dim); }
+  .badge-versatil { border-color: var(--accent-green); color: var(--accent-green); }
   .recipe-desc {
-    padding: 1rem 1.5rem;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    line-height: 1.7;
-    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem; color: var(--text-muted); font-size: 0.85rem;
+    line-height: 1.7; border-bottom: 1px solid var(--border);
   }
 
-  /* PARAMS ROW */
   .params-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 1px;
-    background: var(--border);
-    border-bottom: 1px solid var(--border);
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px; background: var(--border); border-bottom: 1px solid var(--border);
   }
-
-  .param {
-    background: var(--bg-card-alt);
-    padding: 0.9rem 1.2rem;
-  }
-
+  .param { background: var(--bg-card-alt); padding: 0.9rem 1.2rem; }
   .param-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin-bottom: 0.25rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.25rem;
   }
+  .param-value { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--accent-warm); font-weight: 500; }
 
-  .param-value {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.85rem;
-    color: var(--accent-warm);
-    font-weight: 500;
-  }
-
-  /* TIMING TABLE */
-  .timing-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .timing-table { width: 100%; border-collapse: collapse; }
   .timing-table thead th {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    padding: 0.8rem 1rem;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    font-weight: 500;
-    background: var(--bg-card-alt);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim);
+    padding: 0.8rem 1rem; text-align: left; border-bottom: 1px solid var(--border);
+    font-weight: 500; background: var(--bg-card-alt);
   }
-
   .timing-table tbody td {
-    padding: 0.7rem 1rem;
-    font-size: 0.82rem;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
+    padding: 0.7rem 1rem; font-size: 0.82rem;
+    border-bottom: 1px solid var(--border); vertical-align: top;
   }
-
-  .timing-table tbody tr:last-child td {
-    border-bottom: none;
-  }
-
-  .timing-table tbody tr:hover {
-    background: rgba(200,149,106,0.03);
-  }
-
-  .time-cell {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 500;
-    color: var(--text);
-    white-space: nowrap;
-    font-size: 0.8rem;
-  }
-
-  .water-cell {
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--accent-warm);
-    font-size: 0.8rem;
-  }
-
-  .switch-open {
-    color: var(--accent-green);
-    font-weight: 500;
-  }
-
-  .switch-closed {
-    color: var(--accent-berry);
-    font-weight: 500;
-  }
-
-  .temp-cell {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem;
-  }
-
-  .action-cell {
-    color: var(--text-muted);
-    line-height: 1.5;
-  }
+  .timing-table tbody tr:last-child td { border-bottom: none; }
+  .timing-table tbody tr:hover { background: rgba(200,149,106,0.03); }
+  .time-cell { font-family: 'JetBrains Mono', monospace; font-weight: 500; color: var(--text); white-space: nowrap; font-size: 0.8rem; }
+  .water-cell { font-family: 'JetBrains Mono', monospace; color: var(--accent-warm); font-size: 0.8rem; }
+  .switch-open { color: var(--accent-green); font-weight: 500; }
+  .switch-closed { color: var(--accent-berry); font-weight: 500; }
+  .temp-cell { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+  .temp-highlight { color: var(--accent-berry); }
+  .action-cell { color: var(--text-muted); line-height: 1.5; }
 
   /* TIPS */
-  .tips-section {
-    padding: 3rem 0 4rem;
-    border-top: 1px solid var(--border);
-  }
-
-  .tips-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
-    font-weight: 600;
-    margin-bottom: 2rem;
-  }
-
-  .tip-block {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    padding: 1.2rem 1.5rem;
-    margin-bottom: 1rem;
-  }
-
+  .tips-section { padding: 3rem 0 4rem; border-top: 1px solid var(--border); }
+  .tips-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 600; margin-bottom: 2rem; }
+  .tip-block { background: var(--bg-card); border: 1px solid var(--border); padding: 1.2rem 1.5rem; margin-bottom: 1rem; }
   .tip-heading {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--accent-warm);
-    margin-bottom: 0.5rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent-warm); margin-bottom: 0.5rem;
   }
+  .tip-text { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; }
+  .tip-text strong { color: var(--text); font-weight: 500; }
 
-  .tip-text {
-    font-size: 0.88rem;
-    color: var(--text-muted);
-    line-height: 1.7;
-  }
-
-  .tip-text strong {
-    color: var(--text);
-    font-weight: 500;
-  }
-
-  /* FOOTER */
   .footer {
-    padding: 3rem 0;
-    border-top: 1px solid var(--border);
-    text-align: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-dim);
+    padding: 3rem 0; border-top: 1px solid var(--border); text-align: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim);
   }
 
-  /* NAV PILLS */
-  .nav-pills {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 3rem;
-    padding: 2rem 0 0;
+  /* ADMIN BUTTONS */
+  .admin-only { display: none; }
+  body.is-admin .admin-only { display: inline-flex; }
+  .btn-add {
+    background: transparent; border: 1px dashed var(--accent-warm); color: var(--accent-warm);
+    padding: 0.6rem 1.2rem; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+    transition: all 0.2s; width: 100%; margin: 1rem 0;
+  }
+  .btn-add:hover { background: rgba(200,149,106,0.08); }
+  .btn-delete {
+    position: absolute; top: 0.8rem; right: 0.8rem; background: transparent;
+    border: 1px solid var(--accent-red); color: var(--accent-red);
+    width: 28px; height: 28px; font-size: 0.9rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+    line-height: 1; padding: 0;
+  }
+  .btn-delete:hover { background: var(--accent-red); color: var(--bg); }
+  .btn-delete-coffee {
+    position: static; margin-left: 1rem; width: auto; height: auto;
+    padding: 0.3rem 0.7rem; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase;
   }
 
-  .nav-pill {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--border-light);
-    color: var(--text-muted);
-    cursor: pointer;
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+    overflow-y: auto; padding: 2rem 1rem;
+  }
+  .modal-overlay.active { display: flex; justify-content: center; align-items: flex-start; }
+  .modal {
+    background: var(--bg-card); border: 1px solid var(--border);
+    width: 100%; max-width: 600px; padding: 2rem; position: relative;
+    margin: auto;
+  }
+  .modal-title {
+    font-family: 'Playfair Display', serif; font-size: 1.4rem;
+    font-weight: 600; margin-bottom: 1.5rem;
+  }
+  .modal-close {
+    position: absolute; top: 1rem; right: 1rem; background: transparent;
+    border: none; color: var(--text-dim); font-size: 1.5rem; cursor: pointer;
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* FORM */
+  .form-group { margin-bottom: 1.2rem; }
+  .form-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim);
+    display: block; margin-bottom: 0.4rem;
+  }
+  .form-input, .form-textarea, .form-select {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); padding: 0.6rem 0.8rem; font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem; outline: none; transition: border-color 0.2s;
+  }
+  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent-warm); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-select { appearance: auto; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+  .form-submit {
+    width: 100%; padding: 0.8rem; background: var(--accent-warm); color: var(--bg);
+    border: none; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer;
+    font-weight: 600; margin-top: 0.5rem; transition: opacity 0.2s;
+  }
+  .form-submit:hover { opacity: 0.85; }
+  .form-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* DYNAMIC STEP ROWS */
+  .step-row {
+    background: var(--bg); border: 1px solid var(--border); padding: 0.8rem;
+    margin-bottom: 0.5rem; position: relative;
+  }
+  .step-row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .step-row .form-input, .step-row .form-textarea, .step-row .form-select {
+    font-size: 0.78rem; padding: 0.4rem 0.6rem;
+  }
+  .step-row .form-textarea { min-height: 50px; }
+  .step-remove {
+    position: absolute; top: 0.4rem; right: 0.4rem; background: transparent;
+    border: none; color: var(--accent-red); cursor: pointer; font-size: 1rem;
+    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+  }
+  .btn-add-step {
+    background: transparent; border: 1px dashed var(--border-light); color: var(--text-dim);
+    padding: 0.5rem; width: 100%; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase;
     transition: all 0.2s;
-    text-decoration: none;
-    background: transparent;
   }
+  .btn-add-step:hover { border-color: var(--accent-warm); color: var(--accent-warm); }
 
-  .nav-pill:hover {
-    border-color: var(--accent-warm);
-    color: var(--accent-warm);
+  /* NOTES INPUT */
+  .notes-input-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .notes-input-row .form-input { flex: 1; }
+  .notes-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+  .notes-tag-item {
+    display: flex; align-items: center; gap: 0.3rem;
+    padding: 0.25rem 0.6rem; border: 1px solid var(--border-light);
+    font-size: 0.7rem; color: var(--text-muted);
   }
-
-  /* SEPARATOR */
-  .section-sep {
-    width: 40px;
-    height: 1px;
-    background: var(--accent-warm);
-    margin: 2rem 0;
-    opacity: 0.5;
+  .notes-tag-item.primary { border-color: var(--accent-warm); color: var(--accent-warm); }
+  .notes-tag-item button {
+    background: transparent; border: none; color: inherit; cursor: pointer;
+    font-size: 0.8rem; padding: 0; margin-left: 0.2rem;
   }
+  .notes-tag-item .toggle-primary {
+    font-size: 0.6rem; opacity: 0.6; margin-right: 0.2rem;
+  }
+  .notes-tag-item .toggle-primary:hover { opacity: 1; }
 
-  /* RESPONSIVE */
+  /* LOADING */
+  .loading { text-align: center; padding: 4rem 0; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.2em; }
+
   @media (max-width: 600px) {
-    .timing-table { font-size: 0.75rem; }
+    .form-row { grid-template-columns: 1fr; }
+    .step-row-grid { grid-template-columns: 1fr; }
     .timing-table thead th, .timing-table tbody td { padding: 0.6rem 0.6rem; }
-    .recipe-header { padding: 1.2rem; }
-    .recipe-desc { padding: 0.8rem 1.2rem; }
     .params-row { grid-template-columns: repeat(2, 1fr); }
     .info-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  /* Scrollable table wrapper */
-  .table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    .modal { padding: 1.5rem 1rem; }
   }
 </style>
 </head>
 <body>
 
+<!-- AUTH BAR -->
+<div class="auth-bar">
+  <span id="auth-status"></span>
+  <button class="auth-btn" id="auth-btn" onclick="toggleAuth()">Admin</button>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="login-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('login-modal')">&times;</button>
+    <h2 class="modal-title">Admin Login</h2>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-input" id="login-email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Contraseña</label>
+      <input type="password" class="form-input" id="login-password">
+    </div>
+    <button class="form-submit" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- ADD COFFEE MODAL -->
+<div class="modal-overlay" id="coffee-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('coffee-modal')">&times;</button>
+    <h2 class="modal-title">Añadir Café</h2>
+    <div class="form-group">
+      <label class="form-label">Nombre</label>
+      <input type="text" class="form-input" id="cf-name" placeholder="Ej: Néstor Lasso — Sidra 48h">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Origen</label>
+      <input type="text" class="form-input" id="cf-origin" placeholder="Ej: Finca El Diviso · Huila, Colombia">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Variedad</label>
+        <input type="text" class="form-input" id="cf-variety">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Proceso</label>
+        <input type="text" class="form-input" id="cf-process">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fermentación</label>
+      <textarea class="form-textarea" id="cf-fermentation"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Productor</label>
+        <input type="text" class="form-input" id="cf-producer">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Temp. recomendada</label>
+        <input type="text" class="form-input" id="cf-temp" placeholder="Ej: 93°C – 96°C">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Carácter</label>
+      <textarea class="form-textarea" id="cf-character" style="min-height:50px;"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notas de cata</label>
+      <div class="notes-input-row">
+        <input type="text" class="form-input" id="cf-note-input" placeholder="Añadir nota...">
+        <button class="auth-btn" onclick="addNote()" style="white-space:nowrap;">+ Añadir</button>
+      </div>
+      <div class="notes-tags" id="cf-notes-tags"></div>
+      <div style="font-size:0.6rem; color:var(--text-dim); margin-top:0.3rem;">Click en ★ para marcar como nota principal</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción</label>
+      <textarea class="form-textarea" id="cf-description"></textarea>
+    </div>
+    <button class="form-submit" id="cf-submit" onclick="saveCoffee()">Guardar Café</button>
+  </div>
+</div>
+
+<!-- ADD RECIPE MODAL -->
+<div class="modal-overlay" id="recipe-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('recipe-modal')">&times;</button>
+    <h2 class="modal-title">Añadir Receta</h2>
+    <input type="hidden" id="rc-coffee-id">
+    <div class="form-group">
+      <label class="form-label">Título</label>
+      <input type="text" class="form-input" id="rc-title" placeholder="Ej: Devil Recipe — Tetsu Kasuya">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Badge</label>
+        <select class="form-select" id="rc-badge-class">
+          <option value="badge-recomendada">★ Recomendada</option>
+          <option value="badge-alternativa">Alternativa</option>
+          <option value="badge-versatil">Versátil</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Texto badge</label>
+        <input type="text" class="form-input" id="rc-badge-text" placeholder="Ej: ★ Recomendada">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción</label>
+      <textarea class="form-textarea" id="rc-description"></textarea>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent-warm);margin:1.5rem 0 0.8rem;">Parámetros</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Café</label>
+        <input type="text" class="form-input" id="rc-cafe" placeholder="20g">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Agua total</label>
+        <input type="text" class="form-input" id="rc-water" placeholder="280g">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Ratio</label>
+        <input type="text" class="form-input" id="rc-ratio" placeholder="1:14">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Molienda K6</label>
+        <input type="text" class="form-input" id="rc-grind" placeholder="85 – 95 clicks">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Temperatura</label>
+        <input type="text" class="form-input" id="rc-temp" placeholder="90°C">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Temp. inmersión (opcional)</label>
+        <input type="text" class="form-input" id="rc-temp-imm" placeholder="70°C">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tiempo total</label>
+      <input type="text" class="form-input" id="rc-time" placeholder="~3:00">
+    </div>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent-warm);margin:1.5rem 0 0.8rem;">Pasos</div>
+    <div id="rc-steps-container"></div>
+    <button class="btn-add-step" onclick="addStepRow()">+ Añadir paso</button>
+
+    <button class="form-submit" id="rc-submit" onclick="saveRecipe()" style="margin-top:1.5rem;">Guardar Receta</button>
+  </div>
+</div>
+
 <!-- HERO -->
 <div class="hero">
   <div class="hero-label">Hario Switch 02 · KinGrinder K6</div>
   <h1>Recetario de <em>Specialty Coffee</em></h1>
-  <p class="hero-sub">Guía de preparación para dos cafés excepcionales de Ineffable Coffee. Recetas optimizadas para Hario Switch 02 y V60.</p>
+  <p class="hero-sub">Guía de preparación para cafés excepcionales. Recetas optimizadas para Hario Switch 02 y V60.</p>
 </div>
 
 <div class="container">
+  <div class="nav-pills" id="nav-pills"></div>
+  <div id="coffees-container"><div class="loading">Cargando cafés...</div></div>
 
-  <!-- NAV -->
-  <div class="nav-pills">
-    <a href="#sidra" class="nav-pill">01 — Néstor Lasso Sidra</a>
-    <a href="#munyinya" class="nav-pill">02 — Munyinya Long Miles</a>
-    <a href="#tips" class="nav-pill">Consejos Generales</a>
-  </div>
+  <button class="btn-add admin-only" onclick="openCoffeeModal()" style="margin-top:2rem;">+ Añadir nuevo café</button>
 
-  <!-- =========================================== -->
-  <!-- CAFÉ 1: NÉSTOR LASSO SIDRA -->
-  <!-- =========================================== -->
-  <section class="coffee-section" id="sidra">
-    <div class="coffee-header">
-      <div class="coffee-number">Café 01</div>
-      <h2 class="coffee-name">Néstor Lasso — Sidra 48h</h2>
-      <div class="coffee-origin">Finca El Diviso · Huila, Colombia · 1700–1850 msnm</div>
-    </div>
-
-    <div class="info-grid">
-      <div class="info-cell">
-        <div class="info-label">Variedad</div>
-        <div class="info-value">Sidra (Bourbon × Typica)</div>
-      </div>
-      <div class="info-cell">
-        <div class="info-label">Proceso</div>
-        <div class="info-value">Honey modificado c/ fermentación anaeróbica</div>
-      </div>
-      <div class="info-cell">
-        <div class="info-label">Fermentación</div>
-        <div class="info-value">Oxidación 12h a 25°C → Anaeróbico 48h en barriles sellados → Lavado térmico 50°C → 2ª fermentación anaeróbica 80h a 35°C con levadura T58</div>
-      </div>
-      <div class="info-cell">
-        <div class="info-label">Productor</div>
-        <div class="info-value">Néstor Lasso (22 años, 3ª generación)</div>
-      </div>
-      <div class="info-cell">
-        <div class="info-label">Carácter</div>
-        <div class="info-value">Intenso, complejo, frutal-fermentado. Alta solubilidad — requiere control de extracción.</div>
-      </div>
-      <div class="info-cell">
-        <div class="info-label">Temp. recomendada</div>
-        <div class="info-value">88°C – 92°C (nunca >93°C)</div>
-      </div>
-    </div>
-
-    <div class="tasting-notes">
-      <span class="note-tag primary">Fresa</span>
-      <span class="note-tag primary">Fruta de la pasión</span>
-      <span class="note-tag">Sandía</span>
-      <span class="note-tag">Melón</span>
-      <span class="note-tag">Grosella roja</span>
-      <span class="note-tag">Sangría</span>
-      <span class="note-tag">Cereza negra</span>
-      <span class="note-tag">Notas vínicas</span>
-    </div>
-
-    <p class="description">
-      Este café es producto de un proceso de fermentación extremadamente complejo y controlado. La variedad Sidra, combinada con las múltiples etapas de fermentación anaeróbica y el uso de levadura cervecera T58, produce un perfil <strong>intensamente frutal y "funky"</strong>. Es un café de <strong>alta solubilidad</strong>, lo que significa que se extrae más rápido de lo habitual. Para evitar sobreextracción (sabores avinagrados, amargos), necesitas: temperatura de agua más baja, molienda ligeramente más gruesa, y/o tiempos de brew más cortos de lo habitual.
-    </p>
-
-    <div class="section-sep"></div>
-
-    <!-- RECETA 1A: Devil de Tetsu -->
-    <div class="recipe-card">
-      <div class="recipe-header">
-        <div>
-          <div class="recipe-title">Devil Recipe — Tetsu Kasuya</div>
-        </div>
-        <span class="recipe-badge badge-recomendada">★ Recomendada</span>
-      </div>
-      <div class="recipe-desc">
-        La receta insignia de Tetsu Kasuya para el Hario Switch. Maximiza la extracción dulce al principio (percolación a temp. alta) y frena la extracción de sabores desagradables al final (inmersión a baja temp.). <strong>Ideal para cafés fermentados</strong> porque la fase de inmersión a 70°C impide extraer los compuestos más agresivos de la fermentación.
-      </div>
-      <div class="params-row">
-        <div class="param">
-          <div class="param-label">Café</div>
-          <div class="param-value">20g</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Agua total</div>
-          <div class="param-value">280g</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Ratio</div>
-          <div class="param-value">1:14</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Molienda K6</div>
-          <div class="param-value">85 – 95 clicks</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Temp. inicio</div>
-          <div class="param-value">90°C</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Temp. inmersión</div>
-          <div class="param-value">70°C</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Tiempo total</div>
-          <div class="param-value">~3:00</div>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table class="timing-table">
-          <thead>
-            <tr>
-              <th>Tiempo</th>
-              <th>Agua</th>
-              <th>Temp.</th>
-              <th>Switch</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="time-cell">0:00 → 0:10</td>
-              <td class="water-cell">60g</td>
-              <td class="temp-cell">90°C</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Verter 60g en círculos cubriendo todo el café. El agua percola libremente.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:10 → 0:30</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Esperar. Dejar drenar.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:30 → 0:40</td>
-              <td class="water-cell">+60g (→120g)</td>
-              <td class="temp-cell">90°C</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Segundo vertido en círculos. Percola libremente.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:40 → 1:15</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell"><strong>Añadir agua fría al hervidor</strong> para bajar la temperatura a ~70°C. Dejar drenar el café.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">1:15</td>
-              <td class="water-cell">+160g (→280g)</td>
-              <td class="temp-cell" style="color: var(--accent-berry);">70°C</td>
-              <td class="switch-closed">▼ Cerrado</td>
-              <td class="action-cell"><strong>Cerrar switch</strong> antes de verter. Añadir los 160g restantes a 70°C. Inmersión.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">1:15 → 1:45</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-closed">▼ Cerrado</td>
-              <td class="action-cell">Esperar en inmersión 30 segundos.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">1:45</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell"><strong>Abrir switch.</strong> Drawdown completo ~3:00.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- RECETA 1B: Ole Kristian Bøen -->
-    <div class="recipe-card">
-      <div class="recipe-header">
-        <div>
-          <div class="recipe-title">Receta de Ole Kristian Bøen</div>
-        </div>
-        <span class="recipe-badge badge-alternativa">Alternativa</span>
-      </div>
-      <div class="recipe-desc">
-        Receta del campeón de la Norwegian Brewers Cup 2020, diseñada para cafés complejos y fermentados. Bloom en inmersión completa + percolación. Saca dulzor y cuerpo sin exagerar las notas fermentadas.
-      </div>
-      <div class="params-row">
-        <div class="param">
-          <div class="param-label">Café</div>
-          <div class="param-value">16.5g</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Agua total</div>
-          <div class="param-value">240g</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Ratio</div>
-          <div class="param-value">1:14.5</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Molienda K6</div>
-          <div class="param-value">90 – 100 clicks</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Temperatura</div>
-          <div class="param-value">90°C</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Tiempo total</div>
-          <div class="param-value">3:00 – 3:15</div>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table class="timing-table">
-          <thead>
-            <tr>
-              <th>Tiempo</th>
-              <th>Agua</th>
-              <th>Temp.</th>
-              <th>Switch</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="time-cell">0:00 → 0:10</td>
-              <td class="water-cell">50g</td>
-              <td class="temp-cell">90°C</td>
-              <td class="switch-closed">▼ Cerrado</td>
-              <td class="action-cell">Bloom en inmersión. Verter 50g en círculos sobre todo el café.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:10 → 0:45</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-closed">▼ Cerrado</td>
-              <td class="action-cell">Esperar ~35s. El café desgasifica sumergido.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:45</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell"><strong>Abrir switch.</strong> Dejar drenar el bloom.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">1:00 → 1:30</td>
-              <td class="water-cell">+190g (→240g)</td>
-              <td class="temp-cell">90°C</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Vertido principal en círculos concéntricos suaves, desde el centro hacia fuera y de vuelta. Percolación libre.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">1:30 → 3:00</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Drawdown completo. Objetivo: terminar entre 3:00 y 3:15.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- RECETA 1C: Double Bloom Standout -->
-    <div class="recipe-card">
-      <div class="recipe-header">
-        <div>
-          <div class="recipe-title">Double Bloom — Standout Coffee</div>
-        </div>
-        <span class="recipe-badge badge-alternativa">Alternativa · V60 Puro</span>
-      </div>
-      <div class="recipe-desc">
-        Receta diseñada específicamente para este café Néstor Lasso Sidra por Standout Coffee (tostador que vende el mismo lote). Se usa la Hario Switch con el <strong>switch abierto todo el rato</strong> (modo V60 clásica). Máxima claridad y separación de sabores.
-      </div>
-      <div class="params-row">
-        <div class="param">
-          <div class="param-label">Café</div>
-          <div class="param-value">15g</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Agua total</div>
-          <div class="param-value">250g</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Ratio</div>
-          <div class="param-value">1:16.7</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Molienda K6</div>
-          <div class="param-value">90 – 100 clicks</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Temperatura</div>
-          <div class="param-value">90°C</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Tiempo total</div>
-          <div class="param-value">2:40 – 3:00</div>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table class="timing-table">
-          <thead>
-            <tr>
-              <th>Tiempo</th>
-              <th>Agua</th>
-              <th>Temp.</th>
-              <th>Switch</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="time-cell">0:00 → 0:10</td>
-              <td class="water-cell">50g</td>
-              <td class="temp-cell">90°C</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Primer bloom. Verter 50g cubriendo todo el café.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:10 → 0:30</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Esperar. Drenar.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:30 → 0:40</td>
-              <td class="water-cell">+50g (→100g)</td>
-              <td class="temp-cell">90°C</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Segundo bloom. Verter otros 50g en círculos.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:40 → 1:00</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Esperar. Drenar.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">1:00 → 1:10</td>
-              <td class="water-cell">+150g (→250g)</td>
-              <td class="temp-cell">90°C</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Vertido final. Verter los 150g restantes en un vertido continuo y circular.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">1:10 → 2:40–3:00</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Drawdown completo. Objetivo: 2:40 a 3:00.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- =========================================== -->
-  <!-- CAFÉ 2: MUNYINYA LONG MILES -->
-  <!-- =========================================== -->
-  <section class="coffee-section" id="munyinya">
-    <div class="coffee-header">
-      <div class="coffee-number">Café 02</div>
-      <h2 class="coffee-name">Munyinya — Long Miles</h2>
-      <div class="coffee-origin">Colina Munyinya · Estación Bukeye · Kayanza, Burundi · 1760 msnm</div>
-    </div>
-
-    <div class="info-grid">
-      <div class="info-cell">
-        <div class="info-label">Variedad</div>
-        <div class="info-value">Red Bourbon (landrace)</div>
-      </div>
-      <div class="info-cell">
-        <div class="info-label">Proceso</div>
-        <div class="info-value">Lavado (Washed) — doble fermentación</div>
-      </div>
-      <div class="info-cell">
-        <div class="info-label">Fermentación</div>
-        <div class="info-value">Despulpado → fermentación seca 12h → sumergido en agua 12–24h → lavado, clasificado por densidad → secado en camas africanas 16–20 días</div>
-      </div>
-      <div class="info-cell">
-        <div class="info-label">Proyecto</div>
-        <div class="info-value">Long Miles Coffee Project (Ben & Kristy Carlson, desde 2013)</div>
-      </div>
-      <div class="info-cell">
-        <div class="info-label">Carácter</div>
-        <div class="info-value">Limpio, vibrante, acidez cítrica brillante. Clásico africano lavado — se beneficia de alta temperatura.</div>
-      </div>
-      <div class="info-cell">
-        <div class="info-label">Temp. recomendada</div>
-        <div class="info-value">93°C – 96°C</div>
-      </div>
-    </div>
-
-    <div class="tasting-notes">
-      <span class="note-tag primary">Clementina</span>
-      <span class="note-tag primary">Lima</span>
-      <span class="note-tag">Pera amarilla</span>
-      <span class="note-tag">Chocolate con leche</span>
-      <span class="note-tag">Grosellas</span>
-      <span class="note-tag">Oolong oxidado</span>
-      <span class="note-tag">Té floral</span>
-    </div>
-
-    <p class="description">
-      Munyinya fue la colina que hizo que Long Miles creyera en el potencial de Burundi para producir microlotes excepcionales. Las más de 700 familias agricultoras de esta colina entregan cerezas seleccionadas a mano a la estación de lavado Bukeye, donde se procesan con <strong>doble fermentación y clasificación por densidad</strong>. El resultado es un café de <strong>acidez brillante, limpia y jugosa</strong>, con una complejidad que brilla cuando se prepara a temperaturas altas que extraen bien los compuestos aromáticos.
-    </p>
-
-    <div class="section-sep"></div>
-
-    <!-- RECETA 2A: Kaldi's Switch -->
-    <div class="recipe-card">
-      <div class="recipe-header">
-        <div>
-          <div class="recipe-title">Switch con Bloom en Inmersión — Kaldi's</div>
-        </div>
-        <span class="recipe-badge badge-recomendada">★ Recomendada</span>
-      </div>
-      <div class="recipe-desc">
-        Aprovecha el bloom en inmersión (cerrado) para potenciar el dulzor percibido, y luego percolación clásica para extraer la acidez cítrica con claridad. La mejor receta para resaltar la complejidad de un lavado africano.
-      </div>
-      <div class="params-row">
-        <div class="param">
-          <div class="param-label">Café</div>
-          <div class="param-value">16g</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Agua total</div>
-          <div class="param-value">256g</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Ratio</div>
-          <div class="param-value">1:16</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Molienda K6</div>
-          <div class="param-value">90 – 100 clicks</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Temperatura</div>
-          <div class="param-value">95°C</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Tiempo total</div>
-          <div class="param-value">2:45 – 3:15</div>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table class="timing-table">
-          <thead>
-            <tr>
-              <th>Tiempo</th>
-              <th>Agua</th>
-              <th>Temp.</th>
-              <th>Switch</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="time-cell">Prep</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-closed">▼ Cerrado</td>
-              <td class="action-cell">Con un palillo, hacer un <strong>pequeño cráter</strong> en el centro de la cama de café.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:00 → 0:05</td>
-              <td class="water-cell">48g</td>
-              <td class="temp-cell">95°C</td>
-              <td class="switch-closed">▼ Cerrado</td>
-              <td class="action-cell">Bloom en inmersión. Verter en el centro del cráter, luego en círculos hacia fuera. Ratio 3× el peso del café.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:05 → 0:10</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-closed">▼ Cerrado</td>
-              <td class="action-cell"><strong>Swirl suave</strong>: levantar el Switch y agitar en círculos para repartir el agua.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:10 → 0:40</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-closed">▼ Cerrado</td>
-              <td class="action-cell">Esperar en inmersión. Desgasificación completa.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:40</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell"><strong>Abrir switch.</strong> Drenar el bloom.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:50 → 1:30</td>
-              <td class="water-cell">+208g (→256g)</td>
-              <td class="temp-cell">95°C</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Vertido principal, lento y continuo en círculos concéntricos. Sin tocar las paredes del filtro.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">1:30 → ~3:00</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Drawdown. Objetivo: entre 2:45 y 3:15.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- RECETA 2B: 4:6 Tetsu -->
-    <div class="recipe-card">
-      <div class="recipe-header">
-        <div>
-          <div class="recipe-title">Método 4:6 — Tetsu Kasuya</div>
-        </div>
-        <span class="recipe-badge badge-alternativa">Alternativa · V60 Puro</span>
-      </div>
-      <div class="recipe-desc">
-        El famoso método del World Brewers Cup 2016. Switch <strong>abierto todo el rato</strong> (modo V60). Los dos primeros vertidos (40% del agua) controlan el balance acidez/dulzor. Los tres últimos (60%) controlan la fuerza. Para este café lavado, el primer vertido es menor que el segundo para potenciar la acidez cítrica.
-      </div>
-      <div class="params-row">
-        <div class="param">
-          <div class="param-label">Café</div>
-          <div class="param-value">20g</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Agua total</div>
-          <div class="param-value">300g</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Ratio</div>
-          <div class="param-value">1:15</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Molienda K6</div>
-          <div class="param-value">110 – 120 clicks</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Temperatura</div>
-          <div class="param-value">95°C</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Tiempo total</div>
-          <div class="param-value">3:00 – 3:30</div>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table class="timing-table">
-          <thead>
-            <tr>
-              <th>Tiempo</th>
-              <th>Agua</th>
-              <th>Temp.</th>
-              <th>Switch</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="time-cell">0:00 → 0:10</td>
-              <td class="water-cell">50g</td>
-              <td class="temp-cell">95°C</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell"><strong>1er vertido (↑ acidez).</strong> Circular, centro→fuera→centro en 10s. Pausa.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:45 → 0:55</td>
-              <td class="water-cell">+70g (→120g)</td>
-              <td class="temp-cell">95°C</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell"><strong>2º vertido (↑ dulzor).</strong> Mismo movimiento circular. Pausa.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">1:30 → 1:40</td>
-              <td class="water-cell">+60g (→180g)</td>
-              <td class="temp-cell">95°C</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell"><strong>3er vertido.</strong> Controla fuerza. Pausa.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">2:10 → 2:20</td>
-              <td class="water-cell">+60g (→240g)</td>
-              <td class="temp-cell">95°C</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell"><strong>4º vertido.</strong> Pausa.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">2:45 → 2:55</td>
-              <td class="water-cell">+60g (→300g)</td>
-              <td class="temp-cell">95°C</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell"><strong>5º vertido (último).</strong></td>
-            </tr>
-            <tr>
-              <td class="time-cell">2:55 → 3:30</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Drawdown completo. Objetivo: ~3:30.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- RECETA 2C: Devil para Munyinya -->
-    <div class="recipe-card">
-      <div class="recipe-header">
-        <div>
-          <div class="recipe-title">Devil Recipe — Tetsu Kasuya</div>
-        </div>
-        <span class="recipe-badge badge-versatil">Versátil · Ambos cafés</span>
-      </div>
-      <div class="recipe-desc">
-        La Devil funciona muy bien también con cafés lavados como el Munyinya. La fase de percolación a alta temperatura extrae la acidez brillante, y la inmersión a baja temperatura aporta dulzor y cuerpo sin arrastrar astringencia. Usa temperatura inicial más alta que para el Sidra.
-      </div>
-      <div class="params-row">
-        <div class="param">
-          <div class="param-label">Café</div>
-          <div class="param-value">20g</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Agua total</div>
-          <div class="param-value">280g</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Ratio</div>
-          <div class="param-value">1:14</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Molienda K6</div>
-          <div class="param-value">85 – 95 clicks</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Temp. inicio</div>
-          <div class="param-value">95°C</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Temp. inmersión</div>
-          <div class="param-value">70°C</div>
-        </div>
-        <div class="param">
-          <div class="param-label">Tiempo total</div>
-          <div class="param-value">~3:00</div>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table class="timing-table">
-          <thead>
-            <tr>
-              <th>Tiempo</th>
-              <th>Agua</th>
-              <th>Temp.</th>
-              <th>Switch</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="time-cell">0:00 → 0:10</td>
-              <td class="water-cell">60g</td>
-              <td class="temp-cell">95°C</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Verter 60g en círculos. Percolación libre.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:10 → 0:30</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Esperar. Drenar.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:30 → 0:40</td>
-              <td class="water-cell">+60g (→120g)</td>
-              <td class="temp-cell">95°C</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell">Segundo vertido. Drenar.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">0:40 → 1:15</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell"><strong>Enfriar hervidor a ~70°C.</strong> Drenar café.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">1:15</td>
-              <td class="water-cell">+160g (→280g)</td>
-              <td class="temp-cell" style="color: var(--accent-berry);">70°C</td>
-              <td class="switch-closed">▼ Cerrado</td>
-              <td class="action-cell"><strong>Cerrar switch.</strong> Verter 160g a 70°C. Inmersión.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">1:15 → 1:45</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-closed">▼ Cerrado</td>
-              <td class="action-cell">Esperar 30s en inmersión.</td>
-            </tr>
-            <tr>
-              <td class="time-cell">1:45</td>
-              <td class="water-cell">—</td>
-              <td class="temp-cell">—</td>
-              <td class="switch-open">▲ Abierto</td>
-              <td class="action-cell"><strong>Abrir switch.</strong> Drawdown ~3:00.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- =========================================== -->
-  <!-- CONSEJOS GENERALES -->
-  <!-- =========================================== -->
+  <!-- TIPS (static) -->
   <section class="tips-section" id="tips">
     <h2 class="tips-title">Consejos Generales</h2>
-
     <div class="tip-block">
       <div class="tip-heading">Temperatura y cafés fermentados</div>
-      <div class="tip-text">
-        Los cafés con fermentación anaeróbica son más solubles y se extraen más rápido. Para evitar sabores avinagrados o excesivamente "boozy", mantén la temperatura entre <strong>88–92°C</strong>. Para lavados clásicos como el Munyinya, sube a <strong>93–96°C</strong>. Si tu café fermentado sabe a vinagre, antes de culpar al café, baja la temperatura 1-2°C y muele un poco más grueso.
-      </div>
+      <div class="tip-text">Los cafés con fermentación anaeróbica son más solubles y se extraen más rápido. Para evitar sabores avinagrados o excesivamente "boozy", mantén la temperatura entre <strong>88–92°C</strong>. Para lavados clásicos, sube a <strong>93–96°C</strong>.</div>
     </div>
-
     <div class="tip-block">
       <div class="tip-heading">Ajuste de molienda — KinGrinder K6</div>
-      <div class="tip-text">
-        Cada click = 16 micras. Para recetas Switch (inmersión + percolación): empieza en <strong>90–100 clicks</strong>. Para el 4:6 de Tetsu (V60 pura, molienda gruesa): <strong>110–120 clicks</strong>. Para la Devil: <strong>85–95 clicks</strong> (ligeramente más fina que V60 estándar). Ajusta de 3 en 5 clicks: si el café está amargo/astringente → más grueso; si está aguado/ácido vacío → más fino.
-      </div>
+      <div class="tip-text">Cada click = 16 micras. Para recetas Switch (inmersión + percolación): <strong>90–100 clicks</strong>. Para el 4:6 de Tetsu (V60 pura): <strong>110–120 clicks</strong>. Para la Devil: <strong>85–95 clicks</strong>. Ajusta de 3 en 5 clicks según resultado.</div>
     </div>
-
     <div class="tip-block">
       <div class="tip-heading">Agua</div>
-      <div class="tip-text">
-        Usa agua con TDS bajo, idealmente por debajo de 150 ppm. El agua del grifo de Valencia es bastante dura. Opciones: <strong>Bezoya</strong> (mineralización muy débil), o mezclar 50/50 agua del grifo con agua destilada. El agua marca una diferencia enorme en cafés de este nivel.
-      </div>
+      <div class="tip-text">Usa agua con TDS bajo, idealmente por debajo de 150 ppm. Opciones: <strong>Bezoya</strong> o mezclar 50/50 agua del grifo con agua destilada.</div>
     </div>
-
     <div class="tip-block">
       <div class="tip-heading">Reposo post-tueste</div>
-      <div class="tip-text">
-        Deja reposar el café <strong>mínimo 10 días desde la fecha de tueste</strong>. Para cafés densos (como estos dos), los resultados mejoran incluso pasadas las 3-4 semanas. No tengas prisa por abrirlos el día que llegan.
-      </div>
+      <div class="tip-text">Deja reposar el café <strong>mínimo 10 días desde la fecha de tueste</strong>. Para cafés densos, los resultados mejoran incluso pasadas las 3-4 semanas.</div>
     </div>
-
     <div class="tip-block">
       <div class="tip-heading">Purge del molinillo</div>
-      <div class="tip-text">
-        Con cafés caros, sacrifica los primeros <strong>2-3 gramos</strong> del paquete para "purgar" el molinillo. Así te aseguras de que no quedan restos de café anterior entre las fresas.
-      </div>
+      <div class="tip-text">Con cafés caros, sacrifica los primeros <strong>2-3 gramos</strong> del paquete para "purgar" el molinillo y eliminar restos del café anterior.</div>
     </div>
-
     <div class="tip-block">
       <div class="tip-heading">Cómo bajar la temperatura para la Devil</div>
-      <div class="tip-text">
-        Método más fácil: hierve el agua, viértela en el hervidor y tendrás ~95°C. Para la fase de inmersión a 70°C, simplemente <strong>añade agua fría del grifo al hervidor</strong> durante la pausa entre el segundo vertido y el tercer vertido. Usa el termómetro del hervidor para confirmar. Si no tienes hervidor con termómetro, añade aproximadamente un 30-40% del volumen en agua fría.
-      </div>
-    </div>
-
-    <div class="tip-block">
-      <div class="tip-heading">Orden sugerido de preparación</div>
-      <div class="tip-text">
-        Si solo tienes una oportunidad con cada café: empieza con la <strong>Devil Recipe</strong> para el Sidra (es la más segura para cafés fermentados) y la <strong>Switch con Bloom en Inmersión</strong> para el Munyinya. Si repites, experimenta con las alternativas.
-      </div>
+      <div class="tip-text">Simplemente <strong>añade agua fría del grifo al hervidor</strong> durante la pausa. Si no tienes termómetro, añade aproximadamente un 30-40% del volumen en agua fría.</div>
     </div>
   </section>
 
-  <div class="footer">
-    Recetario preparado con datos de Standout Coffee · Hario Europe · Kaldi's Coffee · Timer.Coffee · Perfect Daily Grind · Nordic Brew Lab — Mario, Marzo 2026
-  </div>
-
+  <div class="footer">Recetario de café especialidad — Mario</div>
 </div>
 
+<script>
+const SUPABASE_URL = 'https://elpuqglqactoflzoouiy.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVscHVxZ2xxYWN0b2Zsem9vdWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxODgwNDksImV4cCI6MjA5Mjc2NDA0OX0.GYqqZloGNTmnbJKiO17yl5789DYFKEwu1qQOLV3UYbY';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let isAdmin = false;
+let tastingNotes = [];
+
+// ============ AUTH ============
+async function checkAuth() {
+  const { data: { session } } = await supabase.auth.getSession();
+  setAdmin(!!session);
+}
+
+function setAdmin(admin) {
+  isAdmin = admin;
+  document.body.classList.toggle('is-admin', admin);
+  document.getElementById('auth-status').textContent = admin ? 'Sesión activa' : '';
+  const btn = document.getElementById('auth-btn');
+  if (admin) {
+    btn.textContent = 'Salir';
+    btn.classList.add('logout');
+  } else {
+    btn.textContent = 'Admin';
+    btn.classList.remove('logout');
+  }
+}
+
+function toggleAuth() {
+  if (isAdmin) { doLogout(); }
+  else { document.getElementById('login-modal').classList.add('active'); }
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value;
+  const pw = document.getElementById('login-password').value;
+  const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
+  if (error) { alert('Error: ' + error.message); return; }
+  setAdmin(true);
+  closeModal('login-modal');
+  loadData();
+}
+
+async function doLogout() {
+  await supabase.auth.signOut();
+  setAdmin(false);
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// ============ DATA ============
+async function loadData() {
+  const { data: coffees, error: ce } = await supabase
+    .from('coffees').select('*').order('display_order');
+  if (ce) { console.error(ce); return; }
+
+  const { data: recipes, error: re } = await supabase
+    .from('recipes').select('*').order('display_order');
+  if (re) { console.error(re); return; }
+
+  renderNav(coffees);
+  renderCoffees(coffees, recipes);
+}
+
+function renderNav(coffees) {
+  const nav = document.getElementById('nav-pills');
+  nav.innerHTML = coffees.map((c, i) =>
+    `<a href="#coffee-${c.id}" class="nav-pill">${String(i+1).padStart(2,'0')} — ${c.name}</a>`
+  ).join('') + `<a href="#tips" class="nav-pill">Consejos Generales</a>`;
+}
+
+function renderCoffees(coffees, recipes) {
+  const container = document.getElementById('coffees-container');
+  container.innerHTML = coffees.map((c, i) => {
+    const coffeeRecipes = recipes.filter(r => r.coffee_id === c.id);
+    const notes = (c.tasting_notes || []);
+    const infoFields = [
+      { l: 'Variedad', v: c.variety },
+      { l: 'Proceso', v: c.process },
+      { l: 'Fermentación', v: c.fermentation },
+      { l: 'Productor', v: c.producer },
+      { l: 'Carácter', v: c.character },
+      { l: 'Temp. recomendada', v: c.temp_recommendation },
+    ].filter(f => f.v);
+
+    return `
+    <section class="coffee-section" id="coffee-${c.id}">
+      <div class="coffee-header">
+        <div class="coffee-number">Café ${String(i+1).padStart(2,'0')}</div>
+        <h2 class="coffee-name">
+          ${esc(c.name)}
+          <button class="btn-delete btn-delete-coffee admin-only" onclick="deleteCoffee('${c.id}','${esc(c.name)}')">Eliminar café</button>
+        </h2>
+        <div class="coffee-origin">${esc(c.origin)}</div>
+      </div>
+
+      ${infoFields.length ? `<div class="info-grid">${infoFields.map(f =>
+        `<div class="info-cell"><div class="info-label">${esc(f.l)}</div><div class="info-value">${esc(f.v)}</div></div>`
+      ).join('')}</div>` : ''}
+
+      ${notes.length ? `<div class="tasting-notes">${notes.map(n =>
+        `<span class="note-tag ${n.primary ? 'primary' : ''}">${esc(n.name)}</span>`
+      ).join('')}</div>` : ''}
+
+      ${c.description ? `<p class="description">${esc(c.description)}</p>` : ''}
+
+      <div class="section-sep"></div>
+
+      ${coffeeRecipes.map(r => renderRecipe(r)).join('')}
+
+      <button class="btn-add admin-only" onclick="openRecipeModal('${c.id}')">+ Añadir receta a este café</button>
+    </section>`;
+  }).join('');
+}
+
+function renderRecipe(r) {
+  const steps = r.steps || [];
+  const params = [
+    { l: 'Café', v: r.cafe_amount },
+    { l: 'Agua total', v: r.water_total },
+    { l: 'Ratio', v: r.ratio },
+    { l: 'Molienda K6', v: r.grind_k6 },
+    { l: 'Temperatura', v: r.temperature },
+    { l: 'Temp. inmersión', v: r.temp_immersion },
+    { l: 'Tiempo total', v: r.total_time },
+  ].filter(p => p.v);
+
+  return `
+  <div class="recipe-card">
+    <button class="btn-delete admin-only" onclick="deleteRecipe('${r.id}','${esc(r.title)}')">&times;</button>
+    <div class="recipe-header">
+      <div><div class="recipe-title">${esc(r.title)}</div></div>
+      ${r.badge_text ? `<span class="recipe-badge ${r.badge_class || ''}">${esc(r.badge_text)}</span>` : ''}
+    </div>
+    ${r.description ? `<div class="recipe-desc">${esc(r.description)}</div>` : ''}
+    ${params.length ? `<div class="params-row">${params.map(p =>
+      `<div class="param"><div class="param-label">${esc(p.l)}</div><div class="param-value">${esc(p.v)}</div></div>`
+    ).join('')}</div>` : ''}
+    ${steps.length ? `<div class="table-wrap"><table class="timing-table">
+      <thead><tr><th>Tiempo</th><th>Agua</th><th>Temp.</th><th>Switch</th><th>Acción</th></tr></thead>
+      <tbody>${steps.map(s => `<tr>
+        <td class="time-cell">${esc(s.time||'')}</td>
+        <td class="water-cell">${esc(s.water||'—')}</td>
+        <td class="temp-cell ${s.tempHighlight?'temp-highlight':''}">${esc(s.temp||'—')}</td>
+        <td class="${s.switchState==='closed'?'switch-closed':'switch-open'}">${s.switchState==='closed'?'▼ Cerrado':'▲ Abierto'}</td>
+        <td class="action-cell">${esc(s.action||'')}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : ''}
+  </div>`;
+}
+
+function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ============ ADD COFFEE ============
+function openCoffeeModal() {
+  tastingNotes = [];
+  renderNoteTags();
+  ['cf-name','cf-origin','cf-variety','cf-process','cf-fermentation','cf-producer','cf-temp','cf-character','cf-description','cf-note-input'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('coffee-modal').classList.add('active');
+}
+
+function addNote() {
+  const input = document.getElementById('cf-note-input');
+  const name = input.value.trim();
+  if (!name) return;
+  tastingNotes.push({ name, primary: false });
+  input.value = '';
+  renderNoteTags();
+}
+
+function toggleNotePrimary(i) {
+  tastingNotes[i].primary = !tastingNotes[i].primary;
+  renderNoteTags();
+}
+
+function removeNote(i) {
+  tastingNotes.splice(i, 1);
+  renderNoteTags();
+}
+
+function renderNoteTags() {
+  document.getElementById('cf-notes-tags').innerHTML = tastingNotes.map((n, i) =>
+    `<div class="notes-tag-item ${n.primary?'primary':''}">
+      <button class="toggle-primary" onclick="toggleNotePrimary(${i})">★</button>
+      ${esc(n.name)}
+      <button onclick="removeNote(${i})">&times;</button>
+    </div>`
+  ).join('');
+}
+
+async function saveCoffee() {
+  const btn = document.getElementById('cf-submit');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  const { data: maxOrder } = await supabase.from('coffees').select('display_order').order('display_order', { ascending: false }).limit(1);
+  const nextOrder = (maxOrder && maxOrder.length ? maxOrder[0].display_order : 0) + 1;
+
+  const { error } = await supabase.from('coffees').insert({
+    display_order: nextOrder,
+    name: document.getElementById('cf-name').value,
+    origin: document.getElementById('cf-origin').value,
+    variety: document.getElementById('cf-variety').value,
+    process: document.getElementById('cf-process').value,
+    fermentation: document.getElementById('cf-fermentation').value,
+    producer: document.getElementById('cf-producer').value,
+    character: document.getElementById('cf-character').value,
+    temp_recommendation: document.getElementById('cf-temp').value,
+    tasting_notes: tastingNotes,
+    description: document.getElementById('cf-description').value,
+  });
+
+  btn.disabled = false; btn.textContent = 'Guardar Café';
+  if (error) { alert('Error: ' + error.message); return; }
+  closeModal('coffee-modal');
+  loadData();
+}
+
+// ============ ADD RECIPE ============
+function openRecipeModal(coffeeId) {
+  document.getElementById('rc-coffee-id').value = coffeeId;
+  ['rc-title','rc-badge-text','rc-description','rc-cafe','rc-water','rc-ratio','rc-grind','rc-temp','rc-temp-imm','rc-time'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('rc-steps-container').innerHTML = '';
+  addStepRow();
+  document.getElementById('recipe-modal').classList.add('active');
+}
+
+function addStepRow() {
+  const container = document.getElementById('rc-steps-container');
+  const idx = container.children.length;
+  const div = document.createElement('div');
+  div.className = 'step-row';
+  div.innerHTML = `
+    <button class="step-remove" onclick="this.parentElement.remove()">&times;</button>
+    <div class="step-row-grid">
+      <div class="form-group"><label class="form-label">Tiempo</label><input type="text" class="form-input step-time" placeholder="0:00 → 0:10"></div>
+      <div class="form-group"><label class="form-label">Agua</label><input type="text" class="form-input step-water" placeholder="60g o —"></div>
+      <div class="form-group"><label class="form-label">Temp.</label><input type="text" class="form-input step-temp" placeholder="90°C o —"></div>
+      <div class="form-group"><label class="form-label">Switch</label>
+        <select class="form-select step-switch"><option value="open">▲ Abierto</option><option value="closed">▼ Cerrado</option></select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:0.5rem;">
+      <label class="form-label">Acción</label>
+      <textarea class="form-textarea step-action" placeholder="Descripción del paso..."></textarea>
+    </div>
+    <label style="font-size:0.7rem;color:var(--text-dim);display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;">
+      <input type="checkbox" class="step-highlight"> Destacar temperatura (color rojo para agua fría)
+    </label>`;
+  container.appendChild(div);
+}
+
+async function saveRecipe() {
+  const btn = document.getElementById('rc-submit');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  const coffeeId = document.getElementById('rc-coffee-id').value;
+  const { data: maxOrder } = await supabase.from('recipes').select('display_order').eq('coffee_id', coffeeId).order('display_order', { ascending: false }).limit(1);
+  const nextOrder = (maxOrder && maxOrder.length ? maxOrder[0].display_order : 0) + 1;
+
+  const stepRows = document.querySelectorAll('#rc-steps-container .step-row');
+  const steps = Array.from(stepRows).map(row => ({
+    time: row.querySelector('.step-time').value,
+    water: row.querySelector('.step-water').value || '—',
+    temp: row.querySelector('.step-temp').value || '—',
+    tempHighlight: row.querySelector('.step-highlight').checked,
+    switchState: row.querySelector('.step-switch').value,
+    action: row.querySelector('.step-action').value,
+  }));
+
+  const { error } = await supabase.from('recipes').insert({
+    coffee_id: coffeeId,
+    display_order: nextOrder,
+    title: document.getElementById('rc-title').value,
+    badge_text: document.getElementById('rc-badge-text').value,
+    badge_class: document.getElementById('rc-badge-class').value,
+    description: document.getElementById('rc-description').value,
+    cafe_amount: document.getElementById('rc-cafe').value,
+    water_total: document.getElementById('rc-water').value,
+    ratio: document.getElementById('rc-ratio').value,
+    grind_k6: document.getElementById('rc-grind').value,
+    temperature: document.getElementById('rc-temp').value,
+    temp_immersion: document.getElementById('rc-temp-imm').value,
+    total_time: document.getElementById('rc-time').value,
+    steps,
+  });
+
+  btn.disabled = false; btn.textContent = 'Guardar Receta';
+  if (error) { alert('Error: ' + error.message); return; }
+  closeModal('recipe-modal');
+  loadData();
+}
+
+// ============ DELETE ============
+async function deleteCoffee(id, name) {
+  if (!confirm(`¿Eliminar "${name}" y todas sus recetas?`)) return;
+  const { error } = await supabase.from('coffees').delete().eq('id', id);
+  if (error) { alert('Error: ' + error.message); return; }
+  loadData();
+}
+
+async function deleteRecipe(id, title) {
+  if (!confirm(`¿Eliminar la receta "${title}"?`)) return;
+  const { error } = await supabase.from('recipes').delete().eq('id', id);
+  if (error) { alert('Error: ' + error.message); return; }
+  loadData();
+}
+
+// ============ INIT ============
+checkAuth();
+loadData();
+
+// Enter key on note input
+document.getElementById('cf-note-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addNote(); } });
+</script>
 </body>
 </html>
