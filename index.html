@@ -208,8 +208,8 @@
   }
 
   /* ADMIN BUTTONS */
-  .admin-only { display: none; }
-  body.is-admin .admin-only { display: inline-flex; }
+  .admin-only { display: none !important; }
+  body.is-admin .admin-only { display: inline-flex !important; }
   .btn-add {
     background: transparent; border: 1px dashed var(--accent-warm); color: var(--accent-warm);
     padding: 0.6rem 1.2rem; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
@@ -217,19 +217,21 @@
     transition: all 0.2s; width: 100%; margin: 1rem 0;
   }
   .btn-add:hover { background: rgba(200,149,106,0.08); }
-  .btn-delete {
-    position: absolute; top: 0.8rem; right: 0.8rem; background: transparent;
+  .btn-delete-recipe {
+    background: transparent;
     border: 1px solid var(--accent-red); color: var(--accent-red);
     width: 28px; height: 28px; font-size: 0.9rem; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
-    line-height: 1; padding: 0;
+    align-items: center; justify-content: center; transition: all 0.2s;
+    line-height: 1; padding: 0; flex-shrink: 0;
   }
-  .btn-delete:hover { background: var(--accent-red); color: var(--bg); }
+  .btn-delete-recipe:hover { background: var(--accent-red); color: var(--bg); }
   .btn-delete-coffee {
-    position: static; margin-left: 1rem; width: auto; height: auto;
+    background: transparent; border: 1px solid var(--accent-red); color: var(--accent-red);
     padding: 0.3rem 0.7rem; font-family: 'JetBrains Mono', monospace;
     font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s; margin-top: 0.75rem;
   }
+  .btn-delete-coffee:hover { background: var(--accent-red); color: var(--bg); }
 
   /* MODAL */
   .modal-overlay {
@@ -623,11 +625,9 @@ function renderCoffees(coffees, recipes) {
     <section class="coffee-section" id="coffee-${c.id}">
       <div class="coffee-header">
         <div class="coffee-number">Café ${String(i+1).padStart(2,'0')}</div>
-        <h2 class="coffee-name">
-          ${esc(c.name)}
-          <button class="btn-delete btn-delete-coffee admin-only" onclick="deleteCoffee('${c.id}','${esc(c.name)}')">Eliminar café</button>
-        </h2>
+        <h2 class="coffee-name">${esc(c.name)}</h2>
         <div class="coffee-origin">${esc(c.origin)}</div>
+        <button class="btn-delete-coffee admin-only" onclick="deleteCoffee('${c.id}','${esc(c.name)}')">Eliminar café</button>
       </div>
 
       ${infoFields.length ? `<div class="info-grid">${infoFields.map(f =>
@@ -663,10 +663,12 @@ function renderRecipe(r) {
 
   return `
   <div class="recipe-card">
-    <button class="btn-delete admin-only" onclick="deleteRecipe('${r.id}','${esc(r.title)}')">&times;</button>
     <div class="recipe-header">
       <div><div class="recipe-title">${esc(r.title)}</div></div>
-      ${r.badge_text ? `<span class="recipe-badge ${r.badge_class || ''}">${esc(r.badge_text)}</span>` : ''}
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        ${r.badge_text ? `<span class="recipe-badge ${r.badge_class || ''}">${esc(r.badge_text)}</span>` : ''}
+        <button class="btn-delete-recipe admin-only" onclick="deleteRecipe('${r.id}','${esc(r.title)}')">&times;</button>
+      </div>
     </div>
     ${r.description ? `<div class="recipe-desc">${esc(r.description)}</div>` : ''}
     ${params.length ? `<div class="params-row">${params.map(p =>
