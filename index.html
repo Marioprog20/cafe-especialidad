@@ -543,6 +543,8 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let isAdmin = false;
 let tastingNotes = [];
+let allCoffees = [];
+let allRecipes = [];
 
 // ============ AUTH ============
 async function checkAuth() {
@@ -596,6 +598,8 @@ async function loadData() {
     .from('recipes').select('*').order('display_order');
   if (re) { console.error(re); return; }
 
+  allCoffees = coffees;
+  allRecipes = recipes;
   renderNav(coffees);
   renderCoffees(coffees, recipes);
 }
@@ -603,7 +607,7 @@ async function loadData() {
 function renderNav(coffees) {
   const nav = document.getElementById('nav-pills');
   nav.innerHTML = coffees.map((c, i) =>
-    `<a href="#coffee-${c.id}" class="nav-pill">${String(i+1).padStart(2,'0')} — ${c.name}</a>`
+    `<a href="#coffee-${c.id}" class="nav-pill">${String(i+1).padStart(2,'0')} — ${esc(c.name)}</a>`
   ).join('') + `<a href="#tips" class="nav-pill">Consejos Generales</a>`;
 }
 
@@ -627,7 +631,7 @@ function renderCoffees(coffees, recipes) {
         <div class="coffee-number">Café ${String(i+1).padStart(2,'0')}</div>
         <h2 class="coffee-name">${esc(c.name)}</h2>
         <div class="coffee-origin">${esc(c.origin)}</div>
-        <button class="btn-delete-coffee admin-only" onclick="deleteCoffee('${c.id}','${esc(c.name)}')">Eliminar café</button>
+        <button class="btn-delete-coffee admin-only" data-id="${c.id}">Eliminar café</button>
       </div>
 
       ${infoFields.length ? `<div class="info-grid">${infoFields.map(f =>
@@ -667,7 +671,7 @@ function renderRecipe(r) {
       <div><div class="recipe-title">${esc(r.title)}</div></div>
       <div style="display:flex;align-items:center;gap:0.5rem;">
         ${r.badge_text ? `<span class="recipe-badge ${r.badge_class || ''}">${esc(r.badge_text)}</span>` : ''}
-        <button class="btn-delete-recipe admin-only" onclick="deleteRecipe('${r.id}','${esc(r.title)}')">&times;</button>
+        <button class="btn-delete-recipe admin-only" data-id="${r.id}">&times;</button>
       </div>
     </div>
     ${r.description ? `<div class="recipe-desc">${esc(r.description)}</div>` : ''}
@@ -764,7 +768,6 @@ function openRecipeModal(coffeeId) {
 
 function addStepRow() {
   const container = document.getElementById('rc-steps-container');
-  const idx = container.children.length;
   const div = document.createElement('div');
   div.className = 'step-row';
   div.innerHTML = `
@@ -849,6 +852,27 @@ loadData();
 
 // Enter key on note input
 document.getElementById('cf-note-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addNote(); } });
+
+// Escape key closes any open modal
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  ['login-modal', 'coffee-modal', 'recipe-modal'].forEach(id => closeModal(id));
+});
+
+// Delegated click for delete buttons (avoids onclick attribute injection)
+document.addEventListener('click', function(e) {
+  const dc = e.target.closest('.btn-delete-coffee');
+  if (dc) {
+    const coffee = allCoffees.find(c => c.id === dc.dataset.id);
+    deleteCoffee(dc.dataset.id, coffee ? coffee.name : '');
+    return;
+  }
+  const dr = e.target.closest('.btn-delete-recipe');
+  if (dr) {
+    const recipe = allRecipes.find(r => r.id === dr.dataset.id);
+    deleteRecipe(dr.dataset.id, recipe ? recipe.title : '');
+  }
+});
 </script>
 </body>
 </html>
